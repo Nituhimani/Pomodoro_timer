@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FocusOS</title>
+
+<style>
+
+body{
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+font-family:"Segoe UI",sans-serif;
+background-size:cover;
+background-position:center;
+color:white;
+}
+
+/* Main panel */
+
+.container{
+text-align:center;
+padding:40px;
+border-radius:20px;
+backdrop-filter:blur(12px);
+background:rgba(0,0,0,0.35);
+box-shadow:0 10px 40px rgba(0,0,0,0.4);
+width:420px;
+}
+
+/* Timer */
+
+.timer{
+font-size:80px;
+margin:20px 0;
+}
+
+/* Buttons */
+
+button{
+padding:10px 20px;
+margin:6px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-size:14px;
+}
+
+.start{background:#27ae60;color:white;}
+.reset{background:#e74c3c;color:white;}
+.full{background:#3498db;color:white;}
+
+/* Tasks */
+
+.tasks{
+margin-top:25px;
+text-align:left;
+}
+
+.add-task-btn{
+background:#2ecc71;
+color:white;
+width:100%;
+margin-bottom:10px;
+}
+
+.task-input-box{
+display:none;
+margin-bottom:10px;
+}
+
+.task-input-box input{
+width:70%;
+padding:8px;
+border-radius:6px;
+border:none;
+}
+
+.task-input-box button{
+background:#27ae60;
+color:white;
+}
+
+ul{
+padding:0;
+list-style:none;
+}
+
+li{
+margin:8px 0;
+background:rgba(255,255,255,0.18);
+padding:10px;
+border-radius:8px;
+cursor:pointer;
+transition:0.2s;
+}
+
+li:hover{
+background:rgba(255,255,255,0.28);
+}
+
+.completed{
+text-decoration:line-through;
+opacity:0.6;
+}
+
+.score{
+margin-top:10px;
+font-size:14px;
+}
+
+/* Settings icon */
+
+.settings-icon{
+position:fixed;
+top:20px;
+right:20px;
+font-size:22px;
+background:white;
+color:black;
+width:45px;
+height:45px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+}
+
+/* Settings modal */
+
+.settings{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.6);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.settings-panel{
+background:white;
+color:black;
+padding:25px;
+border-radius:12px;
+width:340px;
+}
+
+/* Wallpapers */
+
+.wallpapers{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+}
+
+.wallpapers img{
+width:100%;
+height:80px;
+object-fit:cover;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* Upload buttons */
+
+.upload-btn{
+display:block;
+background:#333;
+color:white;
+padding:8px;
+border-radius:6px;
+text-align:center;
+margin-top:8px;
+cursor:pointer;
+}
+
+input[type=file]{
+display:none;
+}
+
+audio{
+width:100%;
+margin-top:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>FocusOS</h1>
+
+<div class="timer" id="timer">25:00</div>
+
+<button class="start" onclick="startTimer()">Start</button> <button class="reset" onclick="resetTimer()">Reset</button> <button class="full" id="fullscreenBtn" onclick="toggleFullscreen()">Fullscreen</button>
+
+<audio id="player" controls style="display:none"></audio>
+
+<div class="tasks">
+
+<h3>Tasks</h3>
+
+<button class="add-task-btn" onclick="showTaskInput()">+ Add Task</button>
+
+<div id="taskInputBox" class="task-input-box">
+<input id="taskInput" placeholder="Write a task...">
+<button onclick="addTask()">Add</button>
+</div>
+
+<ul id="taskList"></ul>
+
+<div class="score" id="score">Productivity Score: 0%</div>
+
+</div>
+
+</div>
+
+<div class="settings-icon" onclick="openSettings()">⚙️</div>
+
+<div class="settings" id="settings">
+
+<div class="settings-panel">
+
+<h3>Customize</h3>
+
+<h4>Wallpapers</h4>
+
+<div class="wallpapers" id="wallpapers"></div>
+
+<label class="upload-btn">
+Upload Wallpaper
+<input type="file" id="uploadWallpaper">
+</label>
+
+<h4>Music</h4>
+
+<label class="upload-btn">
+Upload Music
+<input type="file" id="uploadMusic" accept="audio/*">
+</label>
+
+<button onclick="closeSettings()">Close</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* TIMER */
+
+let time=1500
+let interval
+let running=false
+
+function updateTimer(){
+let m=Math.floor(time/60)
+let s=time%60
+document.getElementById("timer").innerText=
+String(m).padStart(2,'0')+":"+String(s).padStart(2,'0')
+}
+
+function startTimer(){
+
+if(running){
+clearInterval(interval)
+running=false
+return
+}
+
+running=true
+
+interval=setInterval(()=>{
+if(time>0){
+time--
+updateTimer()
+}else{
+clearInterval(interval)
+alert("Pomodoro Finished 🎉")
+}
+},1000)
+
+}
+
+function resetTimer(){
+clearInterval(interval)
+running=false
+time=1500
+updateTimer()
+}
+
+/* FULLSCREEN */
+
+function toggleFullscreen(){
+
+let btn=document.getElementById("fullscreenBtn")
+
+if(!document.fullscreenElement){
+
+document.documentElement.requestFullscreen()
+btn.innerText="Exit Fullscreen"
+
+}else{
+
+document.exitFullscreen()
+btn.innerText="Fullscreen"
+
+}
+
+}
+
+/* TASK INPUT */
+
+function showTaskInput(){
+document.getElementById("taskInputBox").style.display="block"
+}
+
+/* TASK LIST */
+
+function addTask(){
+
+let input=document.getElementById("taskInput")
+let task=input.value
+
+if(task==="") return
+
+let li=document.createElement("li")
+li.innerText=task
+
+li.onclick=function(){
+li.classList.toggle("completed")
+updateScore()
+}
+
+document.getElementById("taskList").appendChild(li)
+
+input.value=""
+document.getElementById("taskInputBox").style.display="none"
+
+updateScore()
+
+}
+
+function updateScore(){
+
+let tasks=document.querySelectorAll("#taskList li")
+let done=document.querySelectorAll(".completed")
+
+let score=tasks.length===0 ? 0 : Math.round((done.length/tasks.length)*100)
+
+document.getElementById("score").innerText="Productivity Score: "+score+"%"
+
+}
+
+/* SETTINGS */
+
+function openSettings(){
+document.getElementById("settings").style.display="flex"
+showWallpapers()
+}
+
+function closeSettings(){
+document.getElementById("settings").style.display="none"
+}
+
+/* WALLPAPERS */
+
+const wallpapers=[
+"https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+"https://images.unsplash.com/photo-1503264116251-35a269479413",
+"https://images.unsplash.com/photo-1499084732479-de2c02d45fc4",
+"https://images.unsplash.com/photo-1519681393784-d120267933ba"
+]
+
+function showWallpapers(){
+
+let container=document.getElementById("wallpapers")
+container.innerHTML=""
+
+wallpapers.forEach(src=>{
+
+let img=document.createElement("img")
+img.src=src
+
+img.onclick=function(){
+document.body.style.backgroundImage="url("+src+")"
+localStorage.setItem("wallpaper",src)
+container.innerHTML=""
+}
+
+container.appendChild(img)
+
+})
+
+}
+
+/* CUSTOM WALLPAPER */
+
+document.getElementById("uploadWallpaper").addEventListener("change",function(e){
+
+let file=e.target.files[0]
+let reader=new FileReader()
+
+reader.onload=function(){
+document.body.style.backgroundImage="url("+reader.result+")"
+localStorage.setItem("wallpaper",reader.result)
+}
+
+reader.readAsDataURL(file)
+
+})
+
+/* MUSIC */
+
+document.getElementById("uploadMusic").addEventListener("change",function(e){
+
+let file=e.target.files[0]
+let url=URL.createObjectURL(file)
+
+let player=document.getElementById("player")
+
+player.src=url
+player.style.display="block"
+
+})
+
+/* LOAD WALLPAPER */
+
+window.onload=function(){
+
+updateTimer()
+
+let wallpaper=localStorage.getItem("wallpaper")
+
+if(wallpaper){
+document.body.style.backgroundImage="url("+wallpaper+")"
+}
+
+}
+
+</script>
+
+</body>
+</html>
